@@ -177,18 +177,9 @@ async def line_webhook(request: Request):
 
     return "OK"
 
-from fastapi.responses import FileResponse
-
-# 將整個 frontend 資料夾掛載到根目錄以供測試
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
-
 @app.get("/")
-def read_index():
-    # 明確回傳 index.html 避免 StaticFiles html=True 沒起作用
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
-
-app.mount("/", StaticFiles(directory=FRONTEND_DIR), name="frontend")
+def read_root():
+    return {"message": "LINE OA Backend API is running."}
 
 if __name__ == "__main__":
     import uvicorn
