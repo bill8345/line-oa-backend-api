@@ -1,14 +1,14 @@
 import urllib.parse
 import json
 import time
+import requests
 
 def generate_quickchart_url(history: dict) -> str:
     """
     將計算的歷年資料軌跡轉換為 QuickChart API 圖片網址。
-    使用與前端高度相似的折線圖設定。
+    使用 QuickChart 短網址 API 避免超過 LINE 的 2000 字元限制。
     """
     
-    # 避免產生超過 1000 字元的超長 URL (LINE Message 限制：hero.action.uri 必須 < 1000 字元)
     # 取出約 8~10 個資料點當作圖表呈現
     raw_ages = history["ages"]
     raw_funds = history["funds"]
@@ -44,9 +44,9 @@ def generate_quickchart_url(history: dict) -> str:
                     "pointRadius": 0
                 },
                 {
-                    "label": "退休總需求 (僅生活)",
+                    "label": "需求(僅生活)",
                     "data": needs_basic,
-                    "borderColor": "rgb(59, 130, 246)", # 藍色
+                    "borderColor": "rgb(59, 130, 246)",
                     "backgroundColor": "rgba(59, 130, 246, 0.15)",
                     "borderWidth": 3,
                     "borderDash": [3, 3],
@@ -54,7 +54,7 @@ def generate_quickchart_url(history: dict) -> str:
                     "pointRadius": 0
                 },
                 {
-                    "label": "退休總需求 (含娛樂)",
+                    "label": "需求(含娛樂)",
                     "data": needs_with_fun,
                     "borderColor": "rgb(245, 158, 11)",
                     "backgroundColor": "rgba(245, 158, 11, 0.15)",
@@ -92,21 +92,29 @@ def generate_quickchart_url(history: dict) -> str:
         }
     }
     
-    # 轉換為 json 字串
+    # 使用 QuickChart 短網址 API (POST) 取得短連結
+    try:
+        resp = requests.post("https://quickchart.io/chart/create", json={
+            "chart": chart_config,
+            "width": 600,
+            "height": 400,
+            "backgroundColor": "rgb(253,251,247)",
+            "format": "png"
+        }, timeout=10)
+        
+        if resp.status_code == 200:
+            short_url = resp.json().get("url", "")
+            print(f"QuickChart short URL ({len(short_url)} chars): {short_url}")
+            return short_url
+    except Exception as e:
+        print(f"QuickChart short URL failed: {e}")
+    
+    # Fallback: 使用 GET URL (可能超過長度限制)
     chart_json = json.dumps(chart_config)
-    
-    # 組裝 QuickChart 網址 (米白色紙張背景)
-    # width=600, height=400
     base_url = "https://quickchart.io/chart"
-    params = {
-        "c": chart_json,
-        "w": 600,
-        "h": 400,
-        "bkg": "rgb(253,251,247)",
-        "f": "png"
-    }
-    
-    url = f"{base_url}?{urllib.parse.urlencode(params)}&ts={int(time.time())}"
+    params = {"c": chart_json, "w": 600, "h": 400, "bkg": "rgb(253,251,247)", "f": "png"}
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    print(f"Fallback URL ({len(url)} chars)")
     return url
 
 if __name__ == "__main__":
