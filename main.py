@@ -56,6 +56,11 @@ class ProfileRequest(BaseModel):
     profile_type: str
     image_url: str
 
+class SendResultRequest(BaseModel):
+    user_id: str
+    result: dict
+    history: dict
+
 def create_flex_message(result: dict, chart_url: str) -> dict:
     """建立 LINE Flex Message JSON 結構"""
     def format_money(val):
@@ -149,29 +154,36 @@ def calculate_api(req: CalculateRequest):
     # 偵錯用：確認收到的基本與娛樂支出
     print(f"DEBUG: basic={req.monthly_basic_expense}, fun={req.monthly_fun_expense}")
     
-    # 若前端有傳遞 LINE User ID 且後端有設定好 Token，進行推播
-    if req.user_id and LINE_CHANNEL_ACCESS_TOKEN:
-        # 1. 產生 QuickChart 圖片網址
-        chart_url = generate_quickchart_url(result["history"])
-        
-        # 2. 生成 Flex Message 內容
-        flex_dict = create_flex_message(result, chart_url)
-        flex_obj = FlexContainer.from_dict(flex_dict)
-        flex_message = FlexMessage(alt_text="您的財富規劃試算結果出爐了！", contents=flex_obj)
-        
-        # 3. 推送給該 User
-        with ApiClient(line_config) as api_client:
-            line_api = MessagingApi(api_client)
-            push_req = PushMessageRequest(
-                to=req.user_id,
-                messages=[flex_message]
-            )
-            try:
-                line_api.push_message(push_req)
-            except Exception as e:
-                print("LINE Push Error:", e)
-
     return result
+
+@app.post("/api/send_result")
+def send_result_api(req: SendResultRequest):
+    """主動將試算結果圖表與資訊推送給 LINE User"""
+    if not LINE_CHANNEL_ACCESS_TOKEN or not req.user_id:
+        return {"status": "skipped", "reason": "No LINE Token or user_id provided"}
+    
+    # 1. 產生 QuickChart 圖片網址
+    chart_url = generate_quickchart_url(req.history)
+    
+    # 2. 生成 Flex Message 內容
+    flex_dict = create_flex_message(req.result, chart_url)
+    flex_obj = FlexContainer.from_dict(flex_dict)
+    flex_message = FlexMessage(alt_text="您的財富規劃試算結果出爐了！", contents=flex_obj)
+    
+    # 3. 推送
+    with ApiClient(line_config) as api_client:
+        line_api = MessagingApi(api_client)
+        push_req = PushMessageRequest(
+            to=req.user_id,
+            messages=[flex_message]
+        )
+        try:
+            line_api.push_message(push_req)
+        except Exception as e:
+            print("LINE Send Result Error:", e)
+            return {"status": "error", "message": str(e)}
+
+    return {"status": "success"}
 
 @app.post("/api/send_profile")
 def send_profile_api(req: ProfileRequest):

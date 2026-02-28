@@ -24,9 +24,9 @@ def generate_quickchart_url(history: dict) -> str:
         indices.append(total_points - 1)
         
     ages = [raw_ages[i] for i in indices]
-    funds = [raw_funds[i] for i in indices]
-    needs_basic = [raw_needs_basic[i] for i in indices]
-    needs_with_fun = [raw_needs_with_fun[i] for i in indices]
+    funds = [round(raw_funds[i] / 10000, 1) for i in indices]
+    needs_basic = [round(raw_needs_basic[i] / 10000, 1) for i in indices]
+    needs_with_fun = [round(raw_needs_with_fun[i] / 10000, 1) for i in indices]
     
     # 設定 QuickChart 的 Chart.js 格式
     chart_config = {
@@ -68,7 +68,7 @@ def generate_quickchart_url(history: dict) -> str:
         "options": {
             "title": {
                 "display": True,
-                "text": "退休金與存款歷年趨勢圖",
+                "text": "退休金與存款趨勢圖 (單位：萬)",
                 "fontColor": "#4a4036",
                 "fontSize": 18,
                 "fontFamily": "sans-serif"
