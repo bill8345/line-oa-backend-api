@@ -61,7 +61,7 @@ def create_and_set_rich_menu():
                 # 右下 (1250,843): 預約會談
                 RichMenuArea(
                     bounds=RichMenuBounds(x=1250, y=843, width=1250, height=843),
-                    action=URIAction(uri="https://meet.google.com/") # 可替換為您的預約表單
+                    action=URIAction(uri="https://calendar.app.google/zRhNb8jCHXUnKx3V7")
                 )
             ]
         )
