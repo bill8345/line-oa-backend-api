@@ -203,7 +203,7 @@ def send_profile_api(req: ProfileRequest):
             "type": "image",
             "url": req.image_url,
             "size": "full",
-            "aspectRatio": "1:1",
+            "aspectRatio": "1024:1536",
             "aspectMode": "cover"
         },
         "body": {
