@@ -146,6 +146,9 @@ def calculate_api(req: CalculateRequest):
         current_saving=req.current_saving
     )
     
+    # 偵錯用：確認收到的基本與娛樂支出
+    print(f"DEBUG: basic={req.monthly_basic_expense}, fun={req.monthly_fun_expense}")
+    
     # 若前端有傳遞 LINE User ID 且後端有設定好 Token，進行推播
     if req.user_id and LINE_CHANNEL_ACCESS_TOKEN:
         # 1. 產生 QuickChart 圖片網址
