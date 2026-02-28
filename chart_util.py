@@ -1,5 +1,6 @@
 import urllib.parse
 import json
+import time
 
 def generate_quickchart_url(history: dict) -> str:
     """
@@ -105,7 +106,7 @@ def generate_quickchart_url(history: dict) -> str:
         "f": "png"
     }
     
-    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    url = f"{base_url}?{urllib.parse.urlencode(params)}&ts={int(time.time())}"
     return url
 
 if __name__ == "__main__":
