@@ -34,18 +34,19 @@ def generate_quickchart_url(history: dict) -> str:
                 {
                     "label": "預估實際存款",
                     "data": funds,
-                    "borderColor": "rgb(0, 195, 0)",
-                    "backgroundColor": "rgba(0, 195, 0, 0.1)",
-                    "borderWidth": 2,
+                    "borderColor": "rgb(16, 185, 129)",
+                    "backgroundColor": "rgba(16, 185, 129, 0.15)",
+                    "borderWidth": 3,
                     "fill": True,
                     "pointRadius": 0
                 },
                 {
                     "label": "退休總需求",
                     "data": needs,
-                    "borderColor": "rgb(54, 162, 235)",
-                    "backgroundColor": "rgba(54, 162, 235, 0.1)",
-                    "borderWidth": 2,
+                    "borderColor": "rgb(245, 158, 11)",
+                    "backgroundColor": "rgba(245, 158, 11, 0.15)",
+                    "borderWidth": 3,
+                    "borderDash": [5, 5],
                     "fill": True,
                     "pointRadius": 0
                 }
@@ -54,23 +55,25 @@ def generate_quickchart_url(history: dict) -> str:
         "options": {
             "title": {
                 "display": True,
-                "text": "資金缺口與存款歷年趨勢圖",
-                "fontColor": "#ffffff",
-                "fontSize": 16
+                "text": "退休金與存款歷年趨勢圖",
+                "fontColor": "#4a4036",
+                "fontSize": 18,
+                "fontFamily": "sans-serif"
             },
             "legend": {
                 "labels": {
-                    "fontColor": "#ffffff"
+                    "fontColor": "#4a4036",
+                    "fontFamily": "sans-serif"
                 }
             },
             "scales": {
                 "xAxes": [{
                     "gridLines": {"display": False},
-                    "ticks": {"fontColor": "#cccccc", "maxTicksLimit": 10}
+                    "ticks": {"fontColor": "#8c7e6c", "maxTicksLimit": 10, "fontFamily": "sans-serif"}
                 }],
                 "yAxes": [{
-                    "gridLines": {"color": "rgba(255, 255, 255, 0.2)"},
-                    "ticks": {"fontColor": "#cccccc"}
+                    "gridLines": {"color": "rgba(74, 64, 54, 0.05)", "borderDash": [4, 4]},
+                    "ticks": {"fontColor": "#8c7e6c", "fontFamily": "sans-serif"}
                 }]
             }
         }
@@ -79,14 +82,14 @@ def generate_quickchart_url(history: dict) -> str:
     # 轉換為 json 字串
     chart_json = json.dumps(chart_config)
     
-    # 組裝 QuickChart 網址 (黑色背景 bkg=1e1e1e)
+    # 組裝 QuickChart 網址 (米白色紙張背景)
     # width=600, height=400
     base_url = "https://quickchart.io/chart"
     params = {
         "c": chart_json,
         "w": 600,
         "h": 400,
-        "bkg": "rgb(20,20,20)",
+        "bkg": "rgb(253,251,247)",
         "f": "png"
     }
     

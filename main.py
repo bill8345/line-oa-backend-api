@@ -56,8 +56,8 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
         return f"NT$ {val:,}"
         
     gap = result["gap"]
-    gap_color = "#00c300" if gap <= 0 else "#ff4d4f"
-    gap_text = "恭喜！無資金缺口" if gap <= 0 else format_money(gap)
+    gap_color = "#10b981" if gap <= 0 else "#ef4444"
+    gap_text = "恭喜！已達成目標" if gap <= 0 else format_money(gap)
     
     flex_json = {
         "type": "bubble",
@@ -67,13 +67,13 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
             "contents": [
                 {
                     "type": "text",
-                    "text": "資金缺口試算結果",
+                    "text": "退休金試算結果",
                     "weight": "bold",
                     "size": "xl",
-                    "color": "#ffffff"
+                    "color": "#d97706"
                 }
             ],
-            "backgroundColor": "#0d1117"
+            "backgroundColor": "#fdfbf7"
         },
         "hero": {
             "type": "image",
@@ -90,30 +90,31 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "退休總需求", "color": "#8b949e", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_need"]), "align": "end", "weight": "bold"}
+                        {"type": "text", "text": "退休總需求", "color": "#8c7e6c", "size": "sm"},
+                        {"type": "text", "text": format_money(result["total_need"]), "align": "end", "weight": "bold", "color": "#4a4036"}
                     ]
                 },
                 {
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "預估實際存款", "color": "#8b949e", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_fund"]), "align": "end", "weight": "bold"}
+                        {"type": "text", "text": "預估實際存款", "color": "#8c7e6c", "size": "sm"},
+                        {"type": "text", "text": format_money(result["total_fund"]), "align": "end", "weight": "bold", "color": "#4a4036"}
                     ],
                     "margin": "md"
                 },
-                {"type": "separator", "margin": "lg", "color": "#cccccc"},
+                {"type": "separator", "margin": "lg", "color": "#d1c7bc"},
                 {
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "資金缺口", "color": "#8b949e", "size": "md", "weight": "bold"},
+                        {"type": "text", "text": "資金缺口", "color": "#8c7e6c", "size": "md", "weight": "bold"},
                         {"type": "text", "text": gap_text, "align": "end", "weight": "bold", "color": gap_color}
                     ],
                     "margin": "lg"
                 }
-            ]
+            ],
+            "backgroundColor": "#ffffff"
         }
     }
     return flex_json
