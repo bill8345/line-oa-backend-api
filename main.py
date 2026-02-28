@@ -50,6 +50,11 @@ class CalculateRequest(BaseModel):
     # 這樣後端算完可以直接 push_message 給這個 User
     user_id: str = None
 
+class ProfileRequest(BaseModel):
+    user_id: str
+    profile_type: str
+    image_url: str
+
 def create_flex_message(result: dict, chart_url: str) -> dict:
     """建立 LINE Flex Message JSON 結構"""
     def format_money(val):
@@ -153,6 +158,75 @@ def calculate_api(req: CalculateRequest):
                 print("LINE Push Error:", e)
 
     return result
+
+@app.post("/api/send_profile")
+def send_profile_api(req: ProfileRequest):
+    """接收前端傳來的理財人格，並發送專屬圖片給使用者"""
+    if not LINE_CHANNEL_ACCESS_TOKEN or not req.user_id:
+        return {"status": "skipped", "reason": "No LINE Token or user_id provided"}
+    
+    # 根據 profile_type 決定邊框顏色
+    profile_color = "#f59e0b" # 預設穩健橘黃
+    if req.profile_type == "積極型":
+        profile_color = "#ef4444"
+    elif req.profile_type == "保守型":
+        profile_color = "#10b981"
+
+    flex_dict = {
+        "type": "bubble",
+        "header": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": "您的專屬理財人格",
+                    "weight": "bold",
+                    "size": "xl",
+                    "color": "#d97706"
+                }
+            ],
+            "backgroundColor": "#fdfbf7"
+        },
+        "hero": {
+            "type": "image",
+            "url": req.image_url,
+            "size": "full",
+            "aspectRatio": "1:1",
+            "aspectMode": "cover"
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": req.profile_type,
+                    "weight": "bold",
+                    "size": "xxl",
+                    "color": profile_color,
+                    "align": "center"
+                }
+            ],
+            "backgroundColor": "#ffffff"
+        }
+    }
+
+    flex_obj = FlexContainer.from_dict(flex_dict)
+    flex_message = FlexMessage(alt_text=f"專屬理財類型分析結果：{req.profile_type}", contents=flex_obj)
+    
+    with ApiClient(line_config) as api_client:
+        line_api = MessagingApi(api_client)
+        push_req = PushMessageRequest(
+            to=req.user_id,
+            messages=[flex_message]
+        )
+        try:
+            line_api.push_message(push_req)
+        except Exception as e:
+            print("LINE Push Profile Error:", e)
+
+    return {"status": "success"}
 
 @app.post("/webhook")
 async def line_webhook(request: Request):
