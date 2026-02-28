@@ -75,32 +75,10 @@ def create_and_set_rich_menu():
             print(f" -> 建立失敗: {e}")
             exit(1)
         
-        # 2. 上傳測試圖片
-        image_path = "rich_menu_placeholder.jpg"
-        print("重新產生 2x2 測試圖片...")
-        try:
-            from PIL import Image, ImageDraw
-            img = Image.new('RGB', (2500, 1686), color=(255, 255, 255))
-            d = ImageDraw.Draw(img)
-            
-            # 左上: 退休金試算 (暖橘)
-            d.rectangle([(0,0), (1250, 843)], fill=(253, 230, 138))
-            # 右上: 財稅優化策略 (粉藍)
-            d.rectangle([(1250,0), (2500, 843)], fill=(191, 219, 254))
-            # 左下: 資產傳承規劃 (柔紫)
-            d.rectangle([(0,843), (1250, 1686)], fill=(233, 213, 255))
-            # 右下: 預約會談 (淺綠)
-            d.rectangle([(1250,843), (2500, 1686)], fill=(167, 243, 208))
-            
-            # 畫分隔線
-            d.line([(1250, 0), (1250, 1686)], fill=(255, 255, 255), width=10)
-            d.line([(0, 843), (2500, 843)], fill=(255, 255, 255), width=10)
-            
-            # 壓縮存檔 (品質設定為 60，避免超過 1MB)
-            img.save(image_path, "JPEG", quality=60)
-            print(f" -> 已自動產生四色測試圖片 {image_path} (壓縮版)")
-        except ImportError:
-            print(" -> 錯誤：需要 Pillow 套件來產生圖片。")
+        # 2. 上傳自訂測試圖片
+        image_path = "rich_menu_placeholder_compressed.jpg"
+        if not os.path.exists(image_path):
+            print(f"錯誤：找不到圖片 {image_path}，請確認圖檔是否存在。")
             exit(1)
 
         print("2. 正在上傳圖文選單圖片...")
