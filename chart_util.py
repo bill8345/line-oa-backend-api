@@ -11,7 +11,8 @@ def generate_quickchart_url(history: dict) -> str:
     # 取出約 8~10 個資料點當作圖表呈現
     raw_ages = history["ages"]
     raw_funds = history["funds"]
-    raw_needs = history["needs"]
+    raw_needs_basic = history["needs_basic"]
+    raw_needs_with_fun = history["needs_with_fun"]
     
     total_points = len(raw_ages)
     step = max(1, total_points // 8)
@@ -23,7 +24,8 @@ def generate_quickchart_url(history: dict) -> str:
         
     ages = [raw_ages[i] for i in indices]
     funds = [raw_funds[i] for i in indices]
-    needs = [raw_needs[i] for i in indices]
+    needs_basic = [raw_needs_basic[i] for i in indices]
+    needs_with_fun = [raw_needs_with_fun[i] for i in indices]
     
     # 設定 QuickChart 的 Chart.js 格式
     chart_config = {
@@ -41,8 +43,18 @@ def generate_quickchart_url(history: dict) -> str:
                     "pointRadius": 0
                 },
                 {
-                    "label": "退休總需求",
-                    "data": needs,
+                    "label": "退休總需求 (僅生活)",
+                    "data": needs_basic,
+                    "borderColor": "rgb(59, 130, 246)", # 藍色
+                    "backgroundColor": "rgba(59, 130, 246, 0.15)",
+                    "borderWidth": 3,
+                    "borderDash": [3, 3],
+                    "fill": True,
+                    "pointRadius": 0
+                },
+                {
+                    "label": "退休總需求 (含娛樂)",
+                    "data": needs_with_fun,
                     "borderColor": "rgb(245, 158, 11)",
                     "backgroundColor": "rgba(245, 158, 11, 0.15)",
                     "borderWidth": 3,
@@ -99,6 +111,6 @@ def generate_quickchart_url(history: dict) -> str:
 if __name__ == "__main__":
     # Test
     from calculator import calculate_retirement_plan
-    res = calculate_retirement_plan(32, 65, 30000, 10000, 10)
+    res = calculate_retirement_plan(32, 65, 30000, 10000, 10000, 1000000)
     print("QuickChart URL:")
     print(generate_quickchart_url(res["history"]))

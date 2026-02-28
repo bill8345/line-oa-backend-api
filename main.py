@@ -43,7 +43,8 @@ app.add_middleware(
 class CalculateRequest(BaseModel):
     current_age: int
     retire_age: int
-    monthly_expense: float
+    monthly_basic_expense: float
+    monthly_fun_expense: float = 0.0
     monthly_saving: float
     current_saving: float
     # 新增可選的 LINE User ID，若前端在 LIFF 中有抓到，就可以傳過來
@@ -95,15 +96,24 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "退休總需求", "color": "#8c7e6c", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_need"]), "align": "end", "weight": "bold", "color": "#4a4036"}
+                        {"type": "text", "text": "退休總需求 (含娛樂)", "color": "#8c7e6c", "size": "sm"},
+                        {"type": "text", "text": format_money(result["total_need_with_fun"]), "align": "end", "weight": "bold", "color": "#4a4036"}
                     ]
                 },
                 {
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "預估實際存款", "color": "#8c7e6c", "size": "sm"},
+                        {"type": "text", "text": "退休總需求 (僅生活)", "color": "#8c7e6c", "size": "sm"},
+                        {"type": "text", "text": format_money(result["total_need_basic"]), "align": "end", "weight": "bold", "color": "#4a4036"}
+                    ],
+                    "margin": "md"
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "預估實際存款累積", "color": "#8c7e6c", "size": "sm"},
                         {"type": "text", "text": format_money(result["total_fund"]), "align": "end", "weight": "bold", "color": "#4a4036"}
                     ],
                     "margin": "md"
@@ -113,7 +123,7 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "資金缺口", "color": "#8c7e6c", "size": "md", "weight": "bold"},
+                        {"type": "text", "text": "資金缺口 (以含娛樂為準)", "color": "#8c7e6c", "size": "md", "weight": "bold"},
                         {"type": "text", "text": gap_text, "align": "end", "weight": "bold", "color": gap_color}
                     ],
                     "margin": "lg"
@@ -130,7 +140,8 @@ def calculate_api(req: CalculateRequest):
     result = calculate_retirement_plan(
         current_age=req.current_age,
         retire_age=req.retire_age,
-        monthly_expense=req.monthly_expense,
+        monthly_basic_expense=req.monthly_basic_expense,
+        monthly_fun_expense=req.monthly_fun_expense,
         monthly_saving=req.monthly_saving,
         current_saving=req.current_saving
     )
