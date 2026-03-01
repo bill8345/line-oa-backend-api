@@ -48,12 +48,14 @@ class CalculateRequest(BaseModel):
     monthly_fun_expense: float = 0.0
     monthly_saving: float
     current_saving: float
-    # 新增可選的 LINE User ID，若前端在 LIFF 中有抓到，就可以傳過來
+    # 新增可選的 LINE User ID 與姓名，若前端在 LIFF 中有抓到，就可以傳過來
     # 這樣後端算完可以直接 push_message 給這個 User
     user_id: str = None
+    user_name: str = None
 
 class ProfileRequest(BaseModel):
     user_id: str
+    user_name: str = None
     profile_type: str
     image_url: str
 
@@ -163,7 +165,14 @@ def calculate_api(req: CalculateRequest, background_tasks: BackgroundTasks):
         "monthly_fun_expense": req.monthly_fun_expense,
         "current_saving": req.current_saving
     }
-    background_tasks.add_task(sheets_util.append_to_sheet, req.user_id, request_data, result)
+    background_tasks.add_task(
+        sheets_util.append_to_sheet, 
+        req.user_id, 
+        req.user_name, 
+        "第一階段 (基本試算)", 
+        request_data, 
+        result
+    )
     
     return result
 
@@ -197,11 +206,24 @@ def send_result_api(req: SendResultRequest):
     return {"status": "success"}
 
 @app.post("/api/send_profile")
-def send_profile_api(req: ProfileRequest):
+def send_profile_api(req: ProfileRequest, background_tasks: BackgroundTasks):
     """接收前端傳來的理財人格，並發送專屬圖片給使用者"""
     if not LINE_CHANNEL_ACCESS_TOKEN or not req.user_id:
         return {"status": "skipped", "reason": "No LINE Token or user_id provided"}
     
+    # 紀錄理財人格到 Google Sheets
+    profile_data = {
+        "profile_type": req.profile_type
+    }
+    background_tasks.add_task(
+        sheets_util.append_to_sheet,
+        req.user_id,
+        req.user_name,
+        "第二階段 (理財人格測驗)",
+        profile_data,
+        None
+    )
+
     # 根據 profile_type 決定邊框顏色
     profile_color = "#f59e0b" # 預設穩健橘黃
     if req.profile_type == "積極型":

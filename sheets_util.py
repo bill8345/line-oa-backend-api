@@ -13,10 +13,13 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-def append_to_sheet(user_id: str, request_data: dict, result_data: dict):
+def append_to_sheet(user_id: str, user_name: str, stage: str, request_data: dict, result_data: dict = None):
     """
     將使用者的填答與計算結果寫入 Google Sheet。
     """
+    if result_data is None:
+        result_data = {}
+
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     sheet_url = os.getenv("GOOGLE_SHEET_URL")
     
@@ -42,25 +45,28 @@ def append_to_sheet(user_id: str, request_data: dict, result_data: dict):
         # 提取欄位
         row_data = [
             current_time,                         # 紀錄時間
-            user_id or "未提供",                   # LINE User ID
+            stage,                                # 記錄階段 (如：基本試算、理財人格測驗)
+            user_id or "未提供ID",                # LINE User ID
+            user_name or "未提供暱稱",            # LINE 暱稱
             request_data.get('current_age', ''),  # 目前年齡
             request_data.get('retire_age', ''),   # 預計退休年齡
             request_data.get('monthly_basic_expense', ''), # 基本生活費
             request_data.get('monthly_fun_expense', ''),   # 娛樂費用
             request_data.get('current_saving', ''),        # 目前存款
-            result_data.get('total_need_basic', ''),       # 總需求 (基本)
-            result_data.get('total_need_with_fun', ''),    # 總需求 (含娛樂)
-            result_data.get('expected_saving_at_retire', ''), # 退休時累積存款
-            result_data.get('gap', '')                     # 資金缺口 (以含娛樂為準)
+            result_data.get('total_need_basic', ''),       # 退休總需求 (基本)
+            result_data.get('total_need_with_fun', ''),    # 退休總需求 (含娛樂)
+            result_data.get('total_fund', ''),             # 預估實際存款累積 (修正為 total_fund)
+            result_data.get('gap', ''),                    # 資金缺口 (以含娛樂為準)
+            request_data.get('profile_type', '')           # 理財人格 (第二階段用)
         ]
         
         # 檢查第一列是否為標題，若不是則插入標題
         # (Google Sheet 預設會建 1000 空行，所以 row_count=1000 也可能是空的)
         first_row = sheet.row_values(1)
         headers = [
-            "時間", "LINE User ID", "目前年齡", "退休年齡", "預計月基本花費", 
+            "時間", "階段", "LINE User ID", "LINE 暱稱", "目前年齡", "退休年齡", "預計月基本花費", 
             "預計月娛樂花費", "目前存款", "退休總需求(基本)", "退休總需求(含娛樂)", 
-            "退休時累積存款", "資金缺口"
+            "預估實際存款累積", "資金缺口", "理財人格"
         ]
         
         if not first_row or first_row[0] != "時間":
