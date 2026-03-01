@@ -1,9 +1,10 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from calculator import calculate_retirement_plan
 from chart_util import generate_quickchart_url
+import sheets_util
 
 # === LINE Bot SDK 相關 ===
 from linebot.v3 import WebhookParser
@@ -140,7 +141,7 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
     return flex_json
 
 @app.post("/api/calculate")
-def calculate_api(req: CalculateRequest):
+def calculate_api(req: CalculateRequest, background_tasks: BackgroundTasks):
     # 計算資金缺口
     result = calculate_retirement_plan(
         current_age=req.current_age,
@@ -153,6 +154,16 @@ def calculate_api(req: CalculateRequest):
     
     # 偵錯用：確認收到的基本與娛樂支出
     print(f"DEBUG: basic={req.monthly_basic_expense}, fun={req.monthly_fun_expense}")
+    
+    # 使用 BackgroundTasks 異步寫入 Google Sheets，避免卡住使用者的回應時間
+    request_data = {
+        "current_age": req.current_age,
+        "retire_age": req.retire_age,
+        "monthly_basic_expense": req.monthly_basic_expense,
+        "monthly_fun_expense": req.monthly_fun_expense,
+        "current_saving": req.current_saving
+    }
+    background_tasks.add_task(sheets_util.append_to_sheet, req.user_id, request_data, result)
     
     return result
 
