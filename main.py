@@ -58,6 +58,12 @@ class ProfileRequest(BaseModel):
     user_name: str = None
     profile_type: str
     image_url: str
+    # 資產分配比例
+    stock: float = 0.0
+    fund: float = 0.0
+    insurance: float = 0.0
+    demand: float = 0.0
+    time_deposit: float = 0.0
 
 class SendResultRequest(BaseModel):
     user_id: str
@@ -169,7 +175,6 @@ def calculate_api(req: CalculateRequest, background_tasks: BackgroundTasks):
         sheets_util.append_to_sheet, 
         req.user_id, 
         req.user_name, 
-        "第一階段 (基本試算)", 
         request_data, 
         result
     )
@@ -211,17 +216,19 @@ def send_profile_api(req: ProfileRequest, background_tasks: BackgroundTasks):
     if not LINE_CHANNEL_ACCESS_TOKEN or not req.user_id:
         return {"status": "skipped", "reason": "No LINE Token or user_id provided"}
     
-    # 紀錄理財人格到 Google Sheets
-    profile_data = {
-        "profile_type": req.profile_type
+    # 紀錄理財人格與資產分配到 Google Sheets（更新同一列）
+    allocations = {
+        "stock": req.stock,
+        "fund": req.fund,
+        "insurance": req.insurance,
+        "demand": req.demand,
+        "time": req.time_deposit
     }
     background_tasks.add_task(
-        sheets_util.append_to_sheet,
+        sheets_util.update_profile_in_sheet,
         req.user_id,
-        req.user_name,
-        "第二階段 (理財人格測驗)",
-        profile_data,
-        None
+        req.profile_type,
+        allocations
     )
 
     # 根據 profile_type 決定邊框顏色
