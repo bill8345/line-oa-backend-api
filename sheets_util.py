@@ -54,15 +54,17 @@ def append_to_sheet(user_id: str, request_data: dict, result_data: dict):
             result_data.get('gap', '')                     # 資金缺口 (以含娛樂為準)
         ]
         
-        # 如果是第一列沒有標題，可以先塞標題 (這裡簡單直接 Append)
-        # 如果 sheet 是空的，append_row 會從第一列開始寫
-        if sheet.row_count == 0 or len(sheet.get_all_values()) == 0:
-            headers = [
-                "時間", "LINE User ID", "目前年齡", "退休年齡", "預計月基本花費", 
-                "預計月娛樂花費", "目前存款", "退休總需求(基本)", "退休總需求(含娛樂)", 
-                "退休時累積存款", "資金缺口"
-            ]
-            sheet.append_row(headers)
+        # 檢查第一列是否為標題，若不是則插入標題
+        # (Google Sheet 預設會建 1000 空行，所以 row_count=1000 也可能是空的)
+        first_row = sheet.row_values(1)
+        headers = [
+            "時間", "LINE User ID", "目前年齡", "退休年齡", "預計月基本花費", 
+            "預計月娛樂花費", "目前存款", "退休總需求(基本)", "退休總需求(含娛樂)", 
+            "退休時累積存款", "資金缺口"
+        ]
+        
+        if not first_row or first_row[0] != "時間":
+            sheet.insert_row(headers, 1)
             
         sheet.append_row(row_data)
         print("成功將資料寫入 Google Sheet！")
