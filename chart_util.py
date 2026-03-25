@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-def generate_quickchart_url(history: dict) -> str:
+def generate_quickchart_url(history: dict, crossover_age: int = None) -> str:
     """
     將計算的歷年資料軌跡轉換為 QuickChart API 圖片網址。
     使用 QuickChart 短網址 API 避免超過 LINE 的 2000 字元限制。
@@ -28,7 +28,38 @@ def generate_quickchart_url(history: dict) -> str:
     needs_basic = [round(raw_needs_basic[i] / 10000, 1) for i in indices]
     needs_with_fun = [round(raw_needs_with_fun[i] / 10000, 1) for i in indices]
     
+    # 副標題：交叉點說明
+    if crossover_age:
+        subtitle_text = f"📌 約在 {crossover_age} 歲時存款將不足以支應退休開銷"
+    else:
+        subtitle_text = "✅ 存款預估可支撐退休生活至 100 歲"
+    
+    # 底部說明文字（假設條件）
+    footer_text = "假設條件：通膨率 3% ／ 存款利率 1.5% ／ 預計壽命 100 歲"
+    
     # 設定 QuickChart 的 Chart.js 格式
+    # 使用 chartjs-plugin-annotation 畫交叉點垂直線
+    annotations = {}
+    if crossover_age and crossover_age in ages:
+        annotations["crossover"] = {
+            "type": "line",
+            "mode": "vertical",
+            "scaleID": "x-axis-0",
+            "value": str(crossover_age),
+            "borderColor": "rgba(239, 68, 68, 0.6)",
+            "borderWidth": 2,
+            "borderDash": [6, 4],
+            "label": {
+                "enabled": True,
+                "content": f"{crossover_age} 歲",
+                "backgroundColor": "rgba(239, 68, 68, 0.8)",
+                "fontColor": "#fff",
+                "fontSize": 12,
+                "fontFamily": "sans-serif",
+                "position": "top"
+            }
+        }
+    
     chart_config = {
         "type": "line",
         "data": {
@@ -68,9 +99,9 @@ def generate_quickchart_url(history: dict) -> str:
         "options": {
             "title": {
                 "display": True,
-                "text": "退休金與存款趨勢圖 (單位：萬)",
+                "text": ["退休金與存款趨勢圖 (單位：萬)", subtitle_text],
                 "fontColor": "#4a4036",
-                "fontSize": 18,
+                "fontSize": 16,
                 "fontFamily": "sans-serif"
             },
             "legend": {
@@ -88,6 +119,16 @@ def generate_quickchart_url(history: dict) -> str:
                     "gridLines": {"color": "rgba(74, 64, 54, 0.05)", "borderDash": [4, 4]},
                     "ticks": {"fontColor": "#8c7e6c", "fontFamily": "sans-serif"}
                 }]
+            },
+            "plugins": {
+                "annotation": {
+                    "annotations": annotations
+                }
+            },
+            "layout": {
+                "padding": {
+                    "bottom": 30
+                }
             }
         }
     }
@@ -112,7 +153,7 @@ def generate_quickchart_url(history: dict) -> str:
     # Fallback: 使用 GET URL (可能超過長度限制)
     chart_json = json.dumps(chart_config)
     base_url = "https://quickchart.io/chart"
-    params = {"c": chart_json, "w": 600, "h": 400, "bkg": "rgb(253,251,247)", "f": "png"}
+    params = {"c": chart_json, "w": 800, "h": 500, "bkg": "rgb(253,251,247)", "f": "png"}
     url = f"{base_url}?{urllib.parse.urlencode(params)}"
     print(f"Fallback URL ({len(url)} chars)")
     return url
@@ -122,4 +163,5 @@ if __name__ == "__main__":
     from calculator import calculate_retirement_plan
     res = calculate_retirement_plan(32, 65, 30000, 10000, 10000, 1000000)
     print("QuickChart URL:")
-    print(generate_quickchart_url(res["history"]))
+    print(generate_quickchart_url(res["history"], res.get("crossover_age")))
+

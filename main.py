@@ -227,8 +227,9 @@ def send_result_api(req: SendResultRequest):
     if not LINE_CHANNEL_ACCESS_TOKEN or not req.user_id:
         return {"status": "skipped", "reason": "No LINE Token or user_id provided"}
     
-    # 1. 產生 QuickChart 圖片網址
-    chart_url = generate_quickchart_url(req.history)
+    # 1. 產生 QuickChart 圖片網址（包含交叉點標註）
+    crossover_age = req.result.get("crossover_age")
+    chart_url = generate_quickchart_url(req.history, crossover_age)
     
     # 2. 生成 Flex Message 內容
     flex_dict = create_flex_message(req.result, chart_url)
