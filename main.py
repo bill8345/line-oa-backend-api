@@ -80,6 +80,13 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
     gap_color = "#10b981" if gap <= 0 else "#ef4444"
     gap_text = "恭喜！已達成目標" if gap <= 0 else format_money(gap)
     
+    # 交叉點提示文字
+    crossover_age = result.get("crossover_age")
+    if crossover_age:
+        chart_hint = f"當綠色線（存款）與橘色線（需求）交叉時，代表存款即將用盡。依您目前的規劃，約在 {crossover_age} 歲時存款將不足以支應退休開銷。點擊圖片可放大查看！"
+    else:
+        chart_hint = "恭喜！依您目前的規劃，存款預估可支撐退休生活至 100 歲。點擊圖片可放大查看！"
+    
     flex_json = {
         "type": "bubble",
         "header": {
@@ -122,7 +129,7 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                 },
                 {
                     "type": "text",
-                    "text": "當綠色線（存款）與橘色線（需求）交叉時，代表存款即將用盡的年齡。點擊圖片可放大查看！",
+                    "text": chart_hint,
                     "wrap": True,
                     "size": "xs",
                     "color": "#8c7e6c",

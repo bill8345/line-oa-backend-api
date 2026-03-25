@@ -52,12 +52,20 @@ def calculate_retirement_plan(current_age: int, retire_age: int, monthly_basic_e
     gap = total_need_with_fun - total_fund
     if gap < 0:
         gap = 0
+    
+    # 4. 找出交叉點：存款低於累積需求(含娛樂)的年齡
+    crossover_age = None
+    for i in range(1, len(history_ages)):
+        if history_needs_with_fun[i] > 0 and history_needs_with_fun[i] >= history_funds[i]:
+            crossover_age = history_ages[i]
+            break
         
     return {
         "total_need_basic": round(total_need_basic),
         "total_need_with_fun": round(total_need_with_fun),
         "total_fund": round(total_fund),
         "gap": round(gap),
+        "crossover_age": crossover_age,
         "history": {
             "ages": history_ages,
             "funds": history_funds,
