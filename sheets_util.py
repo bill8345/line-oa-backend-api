@@ -17,7 +17,7 @@ HEADERS = [
     "時間", "LINE User ID", "LINE 暱稱", "目前年齡", "退休年齡",
     "預計月基本花費", "預計月娛樂花費", "目前存款",
     "退休總需求(基本)", "退休總需求(含娛樂)", "預估實際存款累積", "資金缺口",
-    "理財人格", "股票%", "基金%", "保險%", "活存%", "定存%"
+    "理財人格", "股票%", "基金%", "保險%", "活存%", "定存%", "加密貨幣%"
 ]
 
 def _get_sheet():
@@ -75,6 +75,7 @@ def append_to_sheet(user_id: str, user_name: str, request_data: dict, result_dat
             '',                                                # 保險%
             '',                                                # 活存%
             '',                                                # 定存%
+            '',                                                # 加密貨幣%
         ]
 
         sheet.append_row(row_data)
@@ -113,10 +114,11 @@ def update_profile_in_sheet(user_id: str, profile_type: str, allocations: dict):
             allocations.get('insurance', ''),
             allocations.get('demand', ''),
             allocations.get('time', ''),
+            allocations.get('crypto', ''),
         ]
 
-        # 批次更新 M~R 欄 (col 13~18)
-        cell_range = f"M{target_row}:R{target_row}"
+        # 批次更新 M~S 欄 (col 13~19)
+        cell_range = f"M{target_row}:S{target_row}"
         sheet.update(cell_range, [profile_data])
 
         print(f"第二階段：成功更新第 {target_row} 列的理財人格與資金分配！")

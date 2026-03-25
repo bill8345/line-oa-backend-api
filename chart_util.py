@@ -96,8 +96,8 @@ def generate_quickchart_url(history: dict) -> str:
     try:
         resp = requests.post("https://quickchart.io/chart/create", json={
             "chart": chart_config,
-            "width": 600,
-            "height": 400,
+            "width": 800,
+            "height": 500,
             "backgroundColor": "rgb(253,251,247)",
             "format": "png"
         }, timeout=10)

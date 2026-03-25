@@ -64,6 +64,7 @@ class ProfileRequest(BaseModel):
     insurance: float = 0.0
     demand: float = 0.0
     time_deposit: float = 0.0
+    crypto: float = 0.0
 
 class SendResultRequest(BaseModel):
     user_id: str
@@ -99,27 +100,50 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
             "type": "image",
             "url": chart_url,
             "size": "full",
-            "aspectRatio": "3:2",
-            "aspectMode": "cover"
+            "aspectRatio": "8:5",
+            "aspectMode": "fit",
+            "action": {
+                "type": "uri",
+                "label": "查看完整圖表",
+                "uri": chart_url
+            }
         },
         "body": {
             "type": "box",
             "layout": "vertical",
             "contents": [
                 {
+                    "type": "text",
+                    "text": "📌 圖表怎麼看？",
+                    "weight": "bold",
+                    "size": "sm",
+                    "color": "#d97706",
+                    "margin": "none"
+                },
+                {
+                    "type": "text",
+                    "text": "當綠色線（存款）與橘色線（需求）交叉時，代表存款即將用盡的年齡。點擊圖片可放大查看！",
+                    "wrap": True,
+                    "size": "xs",
+                    "color": "#8c7e6c",
+                    "margin": "sm"
+                },
+                {"type": "separator", "margin": "lg", "color": "#d1c7bc"},
+                {
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "退休總需求 (含娛樂)", "color": "#8c7e6c", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_need_with_fun"]), "align": "end", "weight": "bold", "color": "#4a4036"}
-                    ]
+                        {"type": "text", "text": "退休總需求 (含娛樂)", "color": "#8c7e6c", "size": "sm", "flex": 5},
+                        {"type": "text", "text": format_money(result["total_need_with_fun"]), "align": "end", "weight": "bold", "color": "#4a4036", "flex": 5}
+                    ],
+                    "margin": "lg"
                 },
                 {
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "退休總需求 (僅生活)", "color": "#8c7e6c", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_need_basic"]), "align": "end", "weight": "bold", "color": "#4a4036"}
+                        {"type": "text", "text": "退休總需求 (僅生活)", "color": "#8c7e6c", "size": "sm", "flex": 5},
+                        {"type": "text", "text": format_money(result["total_need_basic"]), "align": "end", "weight": "bold", "color": "#4a4036", "flex": 5}
                     ],
                     "margin": "md"
                 },
@@ -127,8 +151,8 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "預估實際存款累積", "color": "#8c7e6c", "size": "sm"},
-                        {"type": "text", "text": format_money(result["total_fund"]), "align": "end", "weight": "bold", "color": "#4a4036"}
+                        {"type": "text", "text": "預估實際存款累積", "color": "#8c7e6c", "size": "sm", "flex": 5},
+                        {"type": "text", "text": format_money(result["total_fund"]), "align": "end", "weight": "bold", "color": "#4a4036", "flex": 5}
                     ],
                     "margin": "md"
                 },
@@ -137,9 +161,18 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                     "type": "box",
                     "layout": "horizontal",
                     "contents": [
-                        {"type": "text", "text": "資金缺口 (以含娛樂為準)", "color": "#8c7e6c", "size": "md", "weight": "bold"},
-                        {"type": "text", "text": gap_text, "align": "end", "weight": "bold", "color": gap_color}
+                        {"type": "text", "text": "資金缺口 (以含娛樂為準)", "color": "#8c7e6c", "size": "md", "weight": "bold", "flex": 5},
+                        {"type": "text", "text": gap_text, "align": "end", "weight": "bold", "color": gap_color, "flex": 5}
                     ],
+                    "margin": "lg"
+                },
+                {"type": "separator", "margin": "lg", "color": "#d1c7bc"},
+                {
+                    "type": "text",
+                    "text": "⚙️ 假設條件：通膨率 3% ／存款利率 1.5% ／預計壽命 100 歲",
+                    "wrap": True,
+                    "size": "xxs",
+                    "color": "#b0a090",
                     "margin": "lg"
                 }
             ],
@@ -222,7 +255,8 @@ def send_profile_api(req: ProfileRequest, background_tasks: BackgroundTasks):
         "fund": req.fund,
         "insurance": req.insurance,
         "demand": req.demand,
-        "time": req.time_deposit
+        "time": req.time_deposit,
+        "crypto": req.crypto
     }
     background_tasks.add_task(
         sheets_util.update_profile_in_sheet,
