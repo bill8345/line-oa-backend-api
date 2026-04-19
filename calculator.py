@@ -1,17 +1,15 @@
-def calculate_retirement_plan(current_age: int, retire_age: int, monthly_basic_expense: float, monthly_fun_expense: float, monthly_saving: float, current_saving: float):
+def calculate_retirement_plan(current_age: int, retire_age: int, monthly_basic_expense: float, monthly_fun_expense: float, monthly_saving: float, current_saving: float, max_age: int = 100, interest_rate: float = 0.015):
     """
     計算退休規劃的資金需求、實際存款與缺口。
     假設：
-    1. 活到 100 歲。
+    1. 活到 max_age 歲。
     2. 通膨率 3%，從目前年齡開始逐年計算。
-    3. 存款利率 1.5%，每年複利。
+    3. 存款利率 interest_rate，每年複利。
     4. 存款僅在工作期間 (目前 -> 退休) 持續投入。
     """
-    MAX_AGE = 100
     INFLATION_RATE = 0.03
-    INTEREST_RATE = 0.015
 
-    years_to_live = MAX_AGE - current_age
+    years_to_live = max_age - current_age
     years_to_retire = retire_age - current_age
     
     # 歷年變化陣列，用來畫圖
@@ -28,7 +26,7 @@ def calculate_retirement_plan(current_age: int, retire_age: int, monthly_basic_e
         current_y_age = current_age + y
         
         # --- 計算存款軌跡 ---
-        total_fund *= (1 + INTEREST_RATE)
+        total_fund *= (1 + interest_rate)
         if y <= years_to_retire:
             total_fund += (monthly_saving * 12)
         

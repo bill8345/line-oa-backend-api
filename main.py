@@ -48,6 +48,9 @@ class CalculateRequest(BaseModel):
     monthly_fun_expense: float = 0.0
     monthly_saving: float
     current_saving: float
+    # Optional parameters for customized calculation
+    max_age: int = 100
+    interest_rate: float = 0.015
     # 新增可選的 LINE User ID 與姓名，若前端在 LIFF 中有抓到，就可以傳過來
     # 這樣後端算完可以直接 push_message 給這個 User
     user_id: str = None
@@ -70,8 +73,10 @@ class SendResultRequest(BaseModel):
     user_id: str
     result: dict
     history: dict
+    max_age: int = 100
+    interest_rate: float = 0.015
 
-def create_flex_message(result: dict, chart_url: str) -> dict:
+def create_flex_message(result: dict, chart_url: str, max_age: int = 100, interest_rate: float = 0.015) -> dict:
     """建立 LINE Flex Message JSON 結構"""
     def format_money(val):
         return f"NT$ {val:,}"
@@ -85,7 +90,7 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
     if crossover_age:
         chart_hint = f"當綠色線（存款）與橘色線（需求）交叉時，代表存款即將用盡。依您目前的規劃，約在 {crossover_age} 歲時存款將不足以支應退休開銷。點擊圖片可放大查看！"
     else:
-        chart_hint = "恭喜！依您目前的規劃，存款預估可支撐退休生活至 100 歲。點擊圖片可放大查看！"
+        chart_hint = f"恭喜！依您目前的規劃，存款預估可支撐退休生活至 {max_age} 歲。點擊圖片可放大查看！"
     
     flex_json = {
         "type": "bubble",
@@ -176,7 +181,7 @@ def create_flex_message(result: dict, chart_url: str) -> dict:
                 {"type": "separator", "margin": "lg", "color": "#d1c7bc"},
                 {
                     "type": "text",
-                    "text": "⚙️ 假設條件：通膨率 3% ／存款利率 1.5% ／預計壽命 100 歲",
+                    "text": f"⚙️ 假設條件：通膨率 3% ／存款利率 {interest_rate*100:.1f}% ／預計壽命 {max_age} 歲",
                     "wrap": True,
                     "size": "xxs",
                     "color": "#b0a090",
@@ -197,7 +202,9 @@ def calculate_api(req: CalculateRequest, background_tasks: BackgroundTasks):
         monthly_basic_expense=req.monthly_basic_expense,
         monthly_fun_expense=req.monthly_fun_expense,
         monthly_saving=req.monthly_saving,
-        current_saving=req.current_saving
+        current_saving=req.current_saving,
+        max_age=req.max_age,
+        interest_rate=req.interest_rate
     )
     
     # 偵錯用：確認收到的基本與娛樂支出
@@ -232,7 +239,7 @@ def send_result_api(req: SendResultRequest):
     chart_url = generate_quickchart_url(req.history, crossover_age)
     
     # 2. 生成 Flex Message 內容
-    flex_dict = create_flex_message(req.result, chart_url)
+    flex_dict = create_flex_message(req.result, chart_url, req.max_age, req.interest_rate)
     flex_obj = FlexContainer.from_dict(flex_dict)
     flex_message = FlexMessage(alt_text="您的財富規劃試算結果出爐了！", contents=flex_obj)
     
